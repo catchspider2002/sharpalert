@@ -1,0 +1,16 @@
+{
+  "name": "sharpalert",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:init": "wrangler d1 execute sharpalert --file ./schema.sql",
+    "db:init:remote": "wrangler d1 execute sharpalert --remote --file ./schema.sql"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4",
+    "typescript": "^5",
+    "wrangler": "^4"
+  }
+}

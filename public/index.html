@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SharpAlert — Sharp Movement Detector</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <span class="brand">SharpAlert</span>
+    <button id="run" class="btn">Run poll now</button>
+  </header>
+  <main class="wrap">
+    <p class="tagline muted">Detects significant in-play line movements, classifies sharp vs reactive, and tracks whether each signal predicted the result. Powered by TxLINE.</p>
+
+    <section class="panel">
+      <h2>Signal accuracy</h2>
+      <table class="acc"><thead><tr><th></th><th>High</th><th>Medium</th><th>Low</th><th>All</th></tr></thead>
+        <tbody>
+          <tr><td class="lbl">Signals</td><td id="ac-high-n">0</td><td id="ac-medium-n">0</td><td id="ac-low-n">0</td><td id="ac-all-n">0</td></tr>
+          <tr><td class="lbl">Correct</td><td id="ac-high-c">0</td><td id="ac-medium-c">0</td><td id="ac-low-c">0</td><td id="ac-all-c">0</td></tr>
+          <tr><td class="lbl">Accuracy</td><td id="ac-high-a">—</td><td id="ac-medium-a">—</td><td id="ac-low-a">—</td><td id="ac-all-a">—</td></tr>
+        </tbody></table>
+      <p class="muted small">High-confidence signals should outperform low — that's calibration, not luck.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Odds movement</h2>
+      <select id="match" class="input"><option value="">Pick a tracked match…</option></select>
+      <canvas id="chart" height="120"></canvas>
+    </section>
+
+    <section class="panel">
+      <h2>Live signals</h2>
+      <div id="signals"><p class="muted">No signals yet. Sharp moves (≥5pp) appear here as matches go in-play.</p></div>
+    </section>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
