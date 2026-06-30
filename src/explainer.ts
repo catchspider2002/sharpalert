@@ -1,4 +1,4 @@
-// SharpAlert — Claude explainer. One short signal card per detected movement.
+// SharpAlert - Claude explainer. One short signal card per detected movement.
 import { Classification, Movement } from './detector';
 
 const SYSTEM = `You are a sports trading analyst specialising in identifying sharp money movements in football betting markets.
@@ -11,8 +11,8 @@ Given a detected odds movement during a World Cup match, write a concise signal 
 
 Rules:
 - Maximum 20 words per sentence.
-- Use the concrete numbers from the data — no vague language.
-- Do not make predictions — describe what the market is doing, not what will happen.
+- Use the concrete numbers from the data - no vague language.
+- Do not make predictions - describe what the market is doing, not what will happen.
 - Output only the three sentences separated by newlines, no labels or headers.`;
 
 export interface ExplainInput {

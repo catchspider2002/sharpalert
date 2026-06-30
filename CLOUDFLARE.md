@@ -1,23 +1,23 @@
-# SharpAlert — Cloudflare Deployment (as built)
+# SharpAlert - Cloudflare Deployment (as built)
 
 **Track:** Trading Tools & Agents · **Subdomain:** `sharpalert.<domain>`
 **Live:** https://sharpalert.catchspider2002.workers.dev · Spec: `SPEC.md` · Notes: `README.md`
 
 ## Shape (as built)
 
-Pure **Workers + Cron + D1 + Claude** — no Container, no KV (the JWT cache lives in a D1 `kv` table). A 1-minute cron polls TxLINE odds + scores for in-play World Cup matches, detects/classifies movements, asks Claude for a signal card, stores signals, and scores them on full time. The dashboard is served from `./public` via Workers assets.
+Pure **Workers + Cron + D1 + Claude** - no Container, no KV (the JWT cache lives in a D1 `kv` table). A 1-minute cron polls TxLINE odds + scores for in-play World Cup matches, detects/classifies movements, asks Claude for a signal card, stores signals, and scores them on full time. The dashboard is served from `./public` via Workers assets.
 
 ## Component mapping
 
 | Spec component | Cloudflare (shipped) |
 |---|---|
 | `poller.js` (60s) | Worker `scheduled` cron `* * * * *` → `runPoll()` |
-| `detector.js` (detect + classify) | `src/detector.ts` — `detectMovements`, `classify`, `scoreSignal`; named constants. **Centerpiece.** |
-| `explainer.js` (Claude) | `src/explainer.ts` — `claude-sonnet-4-6`, 3-sentence card, deterministic fallback |
-| odds + scores | `src/txline.ts` — auth + `getOdds` (demargined `Pct` → implied + decimal) + `getMatchState` |
+| `detector.js` (detect + classify) | `src/detector.ts` - `detectMovements`, `classify`, `scoreSignal`; named constants. **Centerpiece.** |
+| `explainer.js` (Claude) | `src/explainer.ts` - `claude-sonnet-4-6`, 3-sentence card, deterministic fallback |
+| odds + scores | `src/txline.ts` - auth + `getOdds` (demargined `Pct` → implied + decimal) + `getMatchState` |
 | `db/signals.json`, `odds-snapshots.json` | **D1** tables `signals`, `odds_snapshots`, plus `match_state` (baseline + streaks + last event) and `kv` |
 | `scorer.js` (post-match) | `scoreMatch()` runs when the poll first sees the match finished |
-| dashboard | `./public` via `[assets]` — signals feed, odds chart (Chart.js), accuracy-by-confidence table |
+| dashboard | `./public` via `[assets]` - signals feed, odds chart (Chart.js), accuracy-by-confidence table |
 | `/run-now` | `POST /api/run-now` (gate before final submission) |
 
 ## Bindings (`wrangler.toml`, as shipped)
@@ -40,7 +40,7 @@ database_name = "sharpalert"
 database_id = "REPLACE_WITH_D1_ID"
 ```
 
-Secrets: `TXLINE_API_KEY` (required), `ANTHROPIC_API_KEY` (recommended — Claude explanations).
+Secrets: `TXLINE_API_KEY` (required), `ANTHROPIC_API_KEY` (recommended - Claude explanations).
 
 ## Deploy
 

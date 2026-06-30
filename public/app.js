@@ -23,7 +23,7 @@ async function loadAccuracy() {
       const t = a[tier] || { signals: 0, correct: 0, accuracy: null };
       qs(`#ac-${tier}-n`).textContent = t.signals;
       qs(`#ac-${tier}-c`).textContent = t.correct;
-      qs(`#ac-${tier}-a`).textContent = t.accuracy == null ? '—' : t.accuracy + '%';
+      qs(`#ac-${tier}-a`).textContent = t.accuracy == null ? '-' : t.accuracy + '%';
     }
   } catch {}
 }
@@ -34,14 +34,14 @@ async function loadSignals() {
     const host = qs('#signals');
     if (!signals.length) return;
     host.innerHTML = signals.map((s) => {
-      const outcome = s.signal_correct == null ? (s.type === 'reactive' ? '' : '<span class="badge b-pending">— pending</span>')
+      const outcome = s.signal_correct == null ? (s.type === 'reactive' ? '' : '<span class="badge b-pending">- pending</span>')
         : (s.signal_correct ? '<span class="badge b-correct">✓ correct</span>' : '<span class="badge b-incorrect">✗ incorrect</span>');
       const delta = (s.implied_delta > 0 ? '+' : '') + s.implied_delta + 'pp';
       return `<div class="signal"><div class="top">` +
         `<span class="match">${esc(s.home_team)} vs ${esc(s.away_team)}</span>` +
         `<span class="badge b-${s.type}">${s.type}</span>` +
         `<span class="badge b-${s.confidence}">${s.confidence}</span>${outcome}</div>` +
-        `<div class="move">${MK[s.market]} ${s.direction} — ${delta} (${s.decimal_before}→${s.decimal_after}) · ${esc(s.phase)}</div>` +
+        `<div class="move">${MK[s.market]} ${s.direction} - ${delta} (${s.decimal_before}→${s.decimal_after}) · ${esc(s.phase)}</div>` +
         `<div class="exp">${esc(s.explanation)}</div></div>`;
     }).join('');
   } catch {}

@@ -2,10 +2,10 @@ name = "sharpalert"
 main = "src/worker.ts"
 compatibility_date = "2026-01-01"
 
-# Secrets (never commit) — set with:
+# Secrets (never commit) - set with:
 #   wrangler secret put TXLINE_API_KEY
 #   wrangler secret put ANTHROPIC_API_KEY   # for the Claude signal explanations
-# (No Container — a 1-minute cron polls TxLINE odds for live matches.)
+# (No Container - a 1-minute cron polls TxLINE odds for live matches.)
 
 [assets]
 directory = "./public"

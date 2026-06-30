@@ -1,4 +1,4 @@
-// SharpAlert — Cloudflare Worker. Cron poller + dashboard API + static assets.
+// SharpAlert - Cloudflare Worker. Cron poller + dashboard API + static assets.
 import { listFixtures, getOdds, getMatchState, TxEnv } from './txline';
 import { detectMovements, classify, scoreSignal, NOISE_THRESHOLD, MARKETS, Market } from './detector';
 import { explain } from './explainer';

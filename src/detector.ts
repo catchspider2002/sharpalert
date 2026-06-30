@@ -1,4 +1,4 @@
-// SharpAlert — movement detection + classification. THE judging centerpiece.
+// SharpAlert - movement detection + classification. THE judging centerpiece.
 // Clean, deterministic, fully commented. Named constants for every threshold.
 
 export const SHARP_THRESHOLD = 0.05;    // 5pp implied-probability shift in one poll = a signal
@@ -49,7 +49,7 @@ export interface Classification { type: 'sharp' | 'reactive'; velocity: Velocity
 
 /**
  * Classify a detected movement.
- * - reactive: a match event (goal/red) happened within REACTIVE_WINDOW_MS — the market is just
+ * - reactive: a match event (goal/red) happened within REACTIVE_WINDOW_MS - the market is just
  *   repricing a known event, not a "sharp" signal.
  * - sharp: a movement with no recent match event to explain it (the interesting case).
  * Confidence: high = sustained (>=3 polls same direction) with no recent event; medium = single

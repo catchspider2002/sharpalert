@@ -1,6 +1,6 @@
-# SharpAlert — Sharp Movement Detector
+# SharpAlert - Sharp Movement Detector
 
-An autonomous agent that polls TxLINE odds every minute across live World Cup matches, detects significant line movements, classifies them **sharp vs reactive**, explains each with Claude, and tracks whether the signal predicted the result. Submitted to the Superteam × TxODDS World Cup Hackathon — Trading Tools & Agents track.
+An autonomous agent that polls TxLINE odds every minute across live World Cup matches, detects significant line movements, classifies them **sharp vs reactive**, explains each with Claude, and tracks whether the signal predicted the result. Submitted to the Superteam × TxODDS World Cup Hackathon - Trading Tools & Agents track.
 
 **Stack:** Cloudflare Workers + **Cron Triggers** + D1 + Claude. No Container.
 
@@ -12,7 +12,7 @@ An autonomous agent that polls TxLINE odds every minute across live World Cup ma
 ## How it works
 
 - **Poll** (`src/worker.ts` cron, every minute): finds in-play World Cup fixtures, reads odds + scores.
-- **Detect** (`src/detector.ts` — the judging centerpiece): a ≥5pp implied-probability shift on any market is a signal; per-market direction streaks give velocity.
+- **Detect** (`src/detector.ts` - the judging centerpiece): a ≥5pp implied-probability shift on any market is a signal; per-market direction streaks give velocity.
 - **Classify**: a move within 3 min of a goal/red is **reactive** (market repricing a known event); otherwise **sharp**. Confidence: high = sustained (3+ polls) with no event, medium = single large move, low = reactive.
 - **Explain** (`src/explainer.ts`): Claude (`claude-sonnet-4-6`) writes a 3-sentence signal card. Falls back to a deterministic card if no key.
 - **Score**: on full time, each sharp signal is marked correct/incorrect; the dashboard breaks accuracy down by confidence tier (calibration, not luck).
@@ -33,7 +33,7 @@ npm run deploy
 
 - `POST /api/run-now` triggers a poll immediately (don't wait for the cron). The dashboard's **Run poll now** button does this.
 - During an in-play match, sharp moves appear in the **Live signals** feed; pick a match to see its **odds movement chart**; the **accuracy** table fills in after matches finish.
-- `detector.js` is intentionally small and commented — open it on camera.
+- `detector.js` is intentionally small and commented - open it on camera.
 
 ## API
 
@@ -50,5 +50,5 @@ npm run deploy
 - Implied probabilities come from the TxODDS demargined `Pct`; decimals are derived as `1/implied`.
 - `reactive` detection uses goal/red count changes as the event proxy; precise minute isn't in the snapshot.
 - Tune `SHARP_THRESHOLD` after watching real in-play tick frequency.
-- `/api/run-now` is open for the demo — gate or remove it before final submission.
+- `/api/run-now` is open for the demo - gate or remove it before final submission.
 - A wallet connect can be added to the dashboard for the Solana sign-up requirement.
