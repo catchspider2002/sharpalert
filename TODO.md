@@ -21,7 +21,8 @@ Live: https://sharpalert.catchspider2002.workers.dev · Repo: https://github.com
 - [ ] **Record demo video** (≤5 min): Run-poll-now during an in-play match, walk `detector.ts`, show a signal card + odds chart + the accuracy table
 - [ ] **Add demo video link** to README + submission form
 - [ ] **Push final code to GitHub** - confirm latest commit; verify `.dev.vars` is NOT committed
-- [ ] **Gate or remove `/api/run-now`** before final submission (it's open for the demo)
+- [x] **Gated `/api/run-now`** behind `ADMIN_KEY` (403 without it); dashboard button hidden unless opened with `?admin=KEY`
+- [ ] **Set `ADMIN_KEY`**: `wrangler secret put ADMIN_KEY` (required to use the "Run poll now" button)
 - [ ] **Fill submission form**: live URL, GitHub URL, video URL, TxLINE endpoints used, API feedback
 - [ ] Attach custom domain `sharpalert.<domain>` (optional)
 

@@ -8,6 +8,7 @@ export interface Env {
   ASSETS: Fetcher;
   TXLINE_API_KEY?: string;
   ANTHROPIC_API_KEY?: string;
+  ADMIN_KEY?: string;
 }
 
 const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET,POST,OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type' };
@@ -34,7 +35,10 @@ export default {
         return json({ snapshots: r.results });
       }
       if (path === '/api/accuracy' && req.method === 'GET') return json(await accuracy(env));
-      if (path === '/api/run-now' && req.method === 'POST') { const n = await runPoll(env); return json({ ok: true, processed: n }); }
+      if (path === '/api/run-now' && req.method === 'POST') {
+        if (!env.ADMIN_KEY || req.headers.get('X-Admin-Key') !== env.ADMIN_KEY) return json({ error: 'forbidden' }, 403);
+        const n = await runPoll(env); return json({ ok: true, processed: n });
+      }
       return json({ error: 'not found' }, 404);
     } catch (e) { return json({ error: String((e as Error).message || e) }, 500); }
   },

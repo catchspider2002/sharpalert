@@ -31,7 +31,7 @@ npm run deploy
 
 ## Demo
 
-- `POST /api/run-now` triggers a poll immediately (don't wait for the cron). The dashboard's **Run poll now** button does this.
+- `POST /api/run-now` triggers a poll immediately (don't wait for the cron) — admin-gated (see Notes). The **Run poll now** button appears when you open the dashboard with `?admin=YOUR_ADMIN_KEY`.
 - During an in-play match, sharp moves appear in the **Live signals** feed; pick a match to see its **odds movement chart**; the **accuracy** table fills in after matches finish.
 - `detector.js` is intentionally small and commented - open it on camera.
 
@@ -43,12 +43,12 @@ npm run deploy
 | GET | `/api/matches` | tracked matches |
 | GET | `/api/odds-history/:matchId` | implied-prob snapshots (chart) |
 | GET | `/api/accuracy` | accuracy by confidence tier |
-| POST | `/api/run-now` | trigger a poll now (demo; gate before submitting) |
+| POST | `/api/run-now` | trigger a poll now — **requires `X-Admin-Key: $ADMIN_KEY`** (403 otherwise) |
 
 ## Notes / limitations (hackathon scope)
 
 - Implied probabilities come from the TxODDS demargined `Pct`; decimals are derived as `1/implied`.
 - `reactive` detection uses goal/red count changes as the event proxy; precise minute isn't in the snapshot.
 - Tune `SHARP_THRESHOLD` after watching real in-play tick frequency.
-- `/api/run-now` is open for the demo - gate or remove it before final submission.
-- A wallet connect can be added to the dashboard for the Solana sign-up requirement.
+- `/api/run-now` is **gated behind `ADMIN_KEY`** (403 without the `X-Admin-Key` header). The "Run poll now" button is hidden for normal visitors and appears only when you open the page with `?admin=YOUR_ADMIN_KEY` (stored locally thereafter). The scheduled cron needs no key. Set it with `wrangler secret put ADMIN_KEY`.
+- No in-app wallet needed: the Solana "sign up" is the TxODDS on-chain data subscription (one-time), and the on-chain angle here is data provenance via TxLINE's audit trail.
