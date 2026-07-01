@@ -18,7 +18,7 @@ Pure **Workers + Cron + D1 + Claude** - no Container, no KV (the JWT cache lives
 | `db/signals.json`, `odds-snapshots.json` | **D1** tables `signals`, `odds_snapshots`, plus `match_state` (baseline + streaks + last event) and `kv` |
 | `scorer.js` (post-match) | `scoreMatch()` runs when the poll first sees the match finished |
 | dashboard | `./public` via `[assets]` - signals feed, odds chart (Chart.js), accuracy-by-confidence table |
-| `/run-now` | `POST /api/run-now` — gated behind `ADMIN_KEY` (`X-Admin-Key` header; 403 otherwise) |
+| `/run-now` | `POST /api/run-now` - gated behind `ADMIN_KEY` (`X-Admin-Key` header; 403 otherwise) |
 
 ## Bindings (`wrangler.toml`, as shipped)
 

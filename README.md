@@ -31,7 +31,7 @@ npm run deploy
 
 ## Demo
 
-- `POST /api/run-now` triggers a poll immediately (don't wait for the cron) — admin-gated (see Notes). The **Run poll now** button appears when you open the dashboard with `?admin=YOUR_ADMIN_KEY`.
+- `POST /api/run-now` triggers a poll immediately (don't wait for the cron) - admin-gated (see Notes). The **Run poll now** button appears when you open the dashboard with `?admin=YOUR_ADMIN_KEY`.
 - During an in-play match, sharp moves appear in the **Live signals** feed; pick a match to see its **odds movement chart**; the **accuracy** table fills in after matches finish.
 - `detector.js` is intentionally small and commented - open it on camera.
 
@@ -43,7 +43,7 @@ npm run deploy
 | GET | `/api/matches` | tracked matches |
 | GET | `/api/odds-history/:matchId` | implied-prob snapshots (chart) |
 | GET | `/api/accuracy` | accuracy by confidence tier |
-| POST | `/api/run-now` | trigger a poll now — **requires `X-Admin-Key: $ADMIN_KEY`** (403 otherwise) |
+| POST | `/api/run-now` | trigger a poll now - **requires `X-Admin-Key: $ADMIN_KEY`** (403 otherwise) |
 
 ## Notes / limitations (hackathon scope)
 
