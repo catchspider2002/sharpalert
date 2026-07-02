@@ -7,7 +7,7 @@ Live: https://sharpalert.catchspider2002.workers.dev · Repo: https://github.com
 
 - [x] Detector (centerpiece): movement detection, sharp/reactive classification, velocity/confidence, scoring - `detector.ts`
 - [x] TxLINE client: auth + fixtures + odds (demargined Pct → implied/decimal) + scores
-- [x] Claude explainer (`claude-sonnet-4-6`) with deterministic fallback
+- [x] DeepInfra explainer with deterministic fallback
 - [x] Cron poller (1-min) over in-play matches; per-match baseline + streaks in D1
 - [x] Post-match scoring + accuracy-by-confidence tracker
 - [x] Dashboard: signals feed, odds chart (Chart.js), accuracy table, Run-poll-now
@@ -17,7 +17,7 @@ Live: https://sharpalert.catchspider2002.workers.dev · Repo: https://github.com
 
 ## ⏳ Before submitting
 
-- [ ] **Add `ANTHROPIC_API_KEY`**: `wrangler secret put ANTHROPIC_API_KEY` (Claude-written signal cards; deterministic fallback works without it)
+- [ ] **Add `DEEPINFRA_API_KEY`**: `wrangler secret put DEEPINFRA_API_KEY` (LLM-written signal cards; deterministic fallback works without it)
 - [ ] **Record demo video** (≤5 min): Run-poll-now during an in-play match, walk `detector.ts`, show a signal card + odds chart + the accuracy table
 - [ ] **Add demo video link** to README + submission form
 - [ ] **Push final code to GitHub** - confirm latest commit; verify `.dev.vars` is NOT committed

@@ -13,7 +13,7 @@ Pure **Workers + Cron + D1 + Claude** - no Container, no KV (the JWT cache lives
 |---|---|
 | `poller.js` (60s) | Worker `scheduled` cron `* * * * *` → `runPoll()` |
 | `detector.js` (detect + classify) | `src/detector.ts` - `detectMovements`, `classify`, `scoreSignal`; named constants. **Centerpiece.** |
-| `explainer.js` (Claude) | `src/explainer.ts` - `claude-sonnet-4-6`, 3-sentence card, deterministic fallback |
+| `explainer.js` (DeepInfra) | `src/explainer.ts` + `src/llm.ts` - 3-sentence card, deterministic fallback |
 | odds + scores | `src/txline.ts` - auth + `getOdds` (demargined `Pct` → implied + decimal) + `getMatchState` |
 | `db/signals.json`, `odds-snapshots.json` | **D1** tables `signals`, `odds_snapshots`, plus `match_state` (baseline + streaks + last event) and `kv` |
 | `scorer.js` (post-match) | `scoreMatch()` runs when the poll first sees the match finished |
@@ -40,7 +40,7 @@ database_name = "sharpalert"
 database_id = "REPLACE_WITH_D1_ID"
 ```
 
-Secrets: `TXLINE_API_KEY` (required), `ANTHROPIC_API_KEY` (recommended - Claude explanations).
+Secrets: `TXLINE_API_KEY` (required), `DEEPINFRA_API_KEY` (recommended - LLM explanations).
 
 ## Deploy
 
@@ -49,7 +49,7 @@ npm install && wrangler login
 wrangler d1 create sharpalert          # paste id into wrangler.toml
 npm run db:init:remote
 wrangler secret put TXLINE_API_KEY
-wrangler secret put ANTHROPIC_API_KEY
+wrangler secret put DEEPINFRA_API_KEY
 npm run deploy
 ```
 

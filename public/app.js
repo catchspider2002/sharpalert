@@ -80,9 +80,17 @@ async function loadChart(matchId) {
   const ctx = qs('#chart').getContext('2d');
   if (chart) chart.destroy();
   const ds = (label, key, color) => ({ label, data: snapshots.map((s) => (s[key] * 100)), borderColor: color, backgroundColor: color, tension: 0.3, pointRadius: 0, borderWidth: 2 });
+  const fmtTs = (t) => { const ms = t < 1e12 ? t * 1000 : t; const d = new Date(ms); return isNaN(d.getTime()) ? '' : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
   chart = new Chart(ctx, {
     type: 'line',
-    data: { labels: snapshots.map((_, i) => i), datasets: [ds('Home', 'home', '#16A34A'), ds('Draw', 'draw', '#8888A4'), ds('Away', 'away', '#DC2626')] },
-    options: { animation: false, scales: { y: { title: { display: true, text: 'implied %' }, ticks: { color: '#8888A4' }, grid: { color: 'rgba(0,0,0,0.06)' } }, x: { display: false } }, plugins: { legend: { labels: { color: '#1A1A2E', font: { family: 'Inter' } } } } },
+    data: { labels: snapshots.map((s) => fmtTs(s.ts)), datasets: [ds('Home', 'home', '#16A34A'), ds('Draw', 'draw', '#8888A4'), ds('Away', 'away', '#DC2626')] },
+    options: {
+      animation: false,
+      scales: {
+        y: { title: { display: true, text: 'implied %' }, ticks: { color: '#8888A4' }, grid: { color: 'rgba(0,0,0,0.06)' } },
+        x: { display: true, title: { display: true, text: 'Time (kickoff → full time)' }, ticks: { color: '#8888A4', maxTicksLimit: 8, maxRotation: 0, autoSkip: true }, grid: { display: false } },
+      },
+      plugins: { legend: { labels: { color: '#1A1A2E', font: { family: 'Inter' } } } },
+    },
   });
 }

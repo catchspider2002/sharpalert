@@ -1,5 +1,6 @@
-// SharpAlert - Claude explainer. One short signal card per detected movement.
+// SharpAlert - DeepInfra explainer. One short signal card per detected movement.
 import { Classification, Movement } from './detector';
+import { chat } from './llm';
 
 const SYSTEM = `You are a sports trading analyst specialising in identifying sharp money movements in football betting markets.
 
@@ -26,17 +27,12 @@ export async function explain(apiKey: string | undefined, input: ExplainInput): 
     `Watch whether ${input.home} vs ${input.away} resolves in line with the move by full time.`;
   if (!apiKey) return fallback;
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6', max_tokens: 120, system: SYSTEM,
-        messages: [{ role: 'user', content: JSON.stringify({ match: { home: input.home, away: input.away, phase: input.phase }, movement: input.movement, classification: input.classification }) }],
-      }),
+    const text = await chat(apiKey, {
+      system: SYSTEM,
+      user: JSON.stringify({ match: { home: input.home, away: input.away, phase: input.phase }, movement: input.movement, classification: input.classification }),
+      maxTokens: 120,
     });
-    if (!res.ok) return fallback;
-    const data = await res.json() as { content?: { text?: string }[] };
-    return data.content?.[0]?.text?.trim() || fallback;
+    return text || fallback;
   } catch { return fallback; }
 }
 

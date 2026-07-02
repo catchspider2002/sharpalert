@@ -7,7 +7,7 @@ export interface Env {
   DB: D1Database;
   ASSETS: Fetcher;
   TXLINE_API_KEY?: string;
-  ANTHROPIC_API_KEY?: string;
+  DEEPINFRA_API_KEY?: string;
   ADMIN_KEY?: string;
 }
 
@@ -103,7 +103,7 @@ async function processMatch(env: Env, txenv: TxEnv, fx: { fixtureId: number; hom
 
   for (const mv of movements) {
     const cls = classify(streak[mv.market]?.count ?? 1, msSinceEvent);
-    const explanation = await explain(env.ANTHROPIC_API_KEY, { home: fx.home, away: fx.away, phase: ms.phase, movement: mv, classification: cls });
+    const explanation = await explain(env.DEEPINFRA_API_KEY, { home: fx.home, away: fx.away, phase: ms.phase, movement: mv, classification: cls });
     await env.DB.prepare(
       'INSERT INTO signals (id,match_id,home_team,away_team,detected_at,phase,market,direction,implied_delta,decimal_before,decimal_after,type,velocity,confidence,explanation) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
       .bind(crypto.randomUUID(), matchId, fx.home, fx.away, now, ms.phase, mv.market, mv.direction, mv.impliedDelta, mv.decimalBefore, mv.decimalAfter, cls.type, cls.velocity, cls.confidence, explanation).run();

@@ -2,7 +2,7 @@
 
 An autonomous agent that polls TxLINE odds every minute across live World Cup matches, detects significant line movements, classifies them **sharp vs reactive**, explains each with Claude, and tracks whether the signal predicted the result. Submitted to the Superteam × TxODDS World Cup Hackathon - Trading Tools & Agents track.
 
-**Stack:** Cloudflare Workers + **Cron Triggers** + D1 + Claude. No Container.
+**Stack:** Cloudflare Workers + **Cron Triggers** + D1 + DeepInfra LLM. No Container.
 
 - **Live:** https://sharpalert.catchspider2002.workers.dev
 - **GitHub:** https://github.com/catchspider2002/sharpalert
@@ -14,7 +14,7 @@ An autonomous agent that polls TxLINE odds every minute across live World Cup ma
 - **Poll** (`src/worker.ts` cron, every minute): finds in-play World Cup fixtures, reads odds + scores.
 - **Detect** (`src/detector.ts` - the judging centerpiece): a ≥5pp implied-probability shift on any market is a signal; per-market direction streaks give velocity.
 - **Classify**: a move within 3 min of a goal/red is **reactive** (market repricing a known event); otherwise **sharp**. Confidence: high = sustained (3+ polls) with no event, medium = single large move, low = reactive.
-- **Explain** (`src/explainer.ts`): Claude (`claude-sonnet-4-6`) writes a 3-sentence signal card. Falls back to a deterministic card if no key.
+- **Explain** (`src/explainer.ts`): DeepInfra LLM writes a 3-sentence signal card. Falls back to a deterministic card if no key.
 - **Score**: on full time, each sharp signal is marked correct/incorrect; the dashboard breaks accuracy down by confidence tier (calibration, not luck).
 
 ## Setup & deploy
@@ -25,7 +25,7 @@ wrangler login
 wrangler d1 create sharpalert          # paste the id into wrangler.toml
 npm run db:init:remote                  # create tables (production)
 wrangler secret put TXLINE_API_KEY
-wrangler secret put ANTHROPIC_API_KEY   # optional but recommended (Claude explanations)
+wrangler secret put DEEPINFRA_API_KEY   # optional but recommended (LLM explanations)
 npm run deploy
 ```
 
