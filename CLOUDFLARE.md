@@ -1,7 +1,7 @@
 # SharpAlert - Cloudflare Deployment (as built)
 
 **Track:** Trading Tools & Agents · **Subdomain:** `sharpalert.<domain>`
-**Live:** https://sharpalert.catchspider2002.workers.dev · Spec: `SPEC.md` · Notes: `README.md`
+**Live:** https://sharpalert.wc26hackathon.com · Spec: `SPEC.md` · Notes: `README.md`
 
 ## Shape (as built)
 

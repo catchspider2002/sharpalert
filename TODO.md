@@ -1,7 +1,7 @@
 # SharpAlert - Submission Checklist
 
 Track: **Trading Tools & Agents** (Superteam × TxODDS World Cup Hackathon)
-Live: https://sharpalert.catchspider2002.workers.dev · Repo: https://github.com/catchspider2002/sharpalert
+Live: https://sharpalert.wc26hackathon.com · Repo: https://github.com/catchspider2002/sharpalert
 
 ## ✅ Done
 

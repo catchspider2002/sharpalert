@@ -4,7 +4,7 @@ An autonomous agent that polls TxLINE odds every minute across live World Cup ma
 
 **Stack:** Cloudflare Workers + **Cron Triggers** + D1 + DeepInfra LLM. No Container.
 
-- **Live:** https://sharpalert.catchspider2002.workers.dev
+- **Live:** https://sharpalert.wc26hackathon.com
 - **GitHub:** https://github.com/catchspider2002/sharpalert
 - **Demo video:** _add link_
 - **TxLINE endpoints used:** `POST /auth/guest/start`, `GET /api/fixtures/snapshot`, `GET /api/odds/snapshot/{fixtureId}`, `GET /api/scores/snapshot/{fixtureId}`
