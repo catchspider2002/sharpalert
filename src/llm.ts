@@ -1,5 +1,5 @@
 // DeepInfra - OpenAI-compatible chat completions (https://api.deepinfra.com/v1/openai).
-export const DEEPINFRA_MODEL = 'deepseek-ai/DeepSeek-V3.2';
+export const DEEPINFRA_MODEL = 'zai-org/GLM-5.2';
 
 const URL = 'https://api.deepinfra.com/v1/openai/chat/completions';
 
