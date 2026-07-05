@@ -22,19 +22,20 @@ export interface ExplainInput {
 }
 
 export async function explain(apiKey: string | undefined, input: ExplainInput): Promise<string> {
-  const fallback = `${cap(input.movement.market)} ${input.movement.direction} ${signed(input.movement.impliedDelta)}pp (${input.movement.decimalBefore}→${input.movement.decimalAfter}).\n` +
+  // Neutral-venue tournament: name the team the market refers to, never "Home"/"Away".
+  const mkName = input.movement.market === 'home' ? `${input.home} (win market)`
+    : input.movement.market === 'away' ? `${input.away} (win market)` : 'Draw';
+  const fallback = `${mkName} ${input.movement.direction} ${signed(input.movement.impliedDelta)}pp (${input.movement.decimalBefore}→${input.movement.decimalAfter}).\n` +
     `Classified ${input.classification.type}, ${input.classification.confidence} confidence.\n` +
     `Watch whether ${input.home} vs ${input.away} resolves in line with the move by full time.`;
   if (!apiKey) return fallback;
   try {
     const text = await chat(apiKey, {
-      system: SYSTEM,
-      user: JSON.stringify({ match: { home: input.home, away: input.away, phase: input.phase }, movement: input.movement, classification: input.classification }),
+      system: SYSTEM + '\nRefer to the moved market by the team name given in "marketName" - never say "home" or "away".',
+      user: JSON.stringify({ match: { home: input.home, away: input.away, phase: input.phase }, movement: { ...input.movement, marketName: mkName }, classification: input.classification }),
       maxTokens: 120,
     });
     return text || fallback;
   } catch { return fallback; }
 }
-
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const signed = (n: number) => (n > 0 ? '+' + n : String(n));

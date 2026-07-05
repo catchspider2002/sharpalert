@@ -61,7 +61,11 @@ export async function getOdds(env: TxEnv, fixtureId: string | number): Promise<O
   const arr = await res.json() as any[];
   if (!Array.isArray(arr)) return null;
   const cands = arr.filter((o) => Array.isArray(o.PriceNames) && o.PriceNames.length === 3 && Array.isArray(o.Pct));
-  const pick = cands.find((o) => /stable/i.test(o.Bookmaker || '') || /stable/i.test(o.SuperOddsType || '')) || cands[0];
+  // Prefer the FULL-TIME 1X2 market: in-play snapshots also carry same-shaped period markets
+  // (first-half result etc.), and picking one of those reads as nonsense (a "95% draw" logged in
+  // first-half stoppage was really the H1-result market, not the match odds).
+  const rank = (o: any) => (/1X2/i.test(o.SuperOddsType || '') ? 4 : 0) + (o.MarketPeriod ? 0 : 2) + (/stable/i.test(o.Bookmaker || '') || /stable/i.test(o.SuperOddsType || '') ? 1 : 0);
+  const pick = cands.slice().sort((a, b) => rank(b) - rank(a))[0];
   if (!pick) return null;
   const pct = (pick.Pct as string[]).map((x) => (x === 'NA' ? NaN : Number(x)));
   if (pct.some((x) => !Number.isFinite(x))) return null;
@@ -76,10 +80,10 @@ function idxOf(names: string[], keys: string[], fb: number): number {
   const i = names.findIndex((n) => keys.some((k) => n === k || n.includes(k))); return i >= 0 ? i : fb;
 }
 
-export interface MatchState { phase: string; started: boolean; finished: boolean; goals: number; reds: number; winner: 'home_win' | 'draw' | 'away_win' | null; }
+export interface MatchState { phase: string; started: boolean; finished: boolean; goals: number; reds: number; winner: 'home_win' | 'draw' | 'away_win' | null; minute: number | null; }
 const FINISHED = new Set(['F', 'FET', 'FPE']);
 export async function getMatchState(env: TxEnv, fixtureId: string | number): Promise<MatchState> {
-  const empty: MatchState = { phase: 'NS', started: false, finished: false, goals: 0, reds: 0, winner: null };
+  const empty: MatchState = { phase: 'NS', started: false, finished: false, goals: 0, reds: 0, winner: null, minute: null };
   const res = await authedGet(env, `/api/scores/snapshot/${fixtureId}`);
   if (!res.ok) return empty;
   const arr = await res.json() as any[];
@@ -93,8 +97,38 @@ export async function getMatchState(env: TxEnv, fixtureId: string | number): Pro
   const finished = FINISHED.has(phase);
   let winner: MatchState['winner'] = null;
   if (finished) winner = g1 > g2 ? (p1Home ? 'home_win' : 'away_win') : g2 > g1 ? (p1Home ? 'away_win' : 'home_win') : 'draw';
-  return { phase, started: phase !== 'NS', finished, goals: g1 + g2, reds, winner };
+  return { phase, started: phase !== 'NS', finished, goals: g1 + g2, reds, winner, minute: matchMinute(arr, phase) };
 }
+
+// Match minute from the latest record carrying a running Clock (the feed's clock counts total
+// elapsed seconds, so H2 readings are already 45+). HT pins to 45. Early in a half few records
+// carry a Clock, so fall back to estimating from the kickoff record's wall timestamp.
+function matchMinute(arr: any[], phase: string): number | null {
+  if (phase === 'NS') return null;
+  if (phase === 'HT') return 45;
+  let best: { seq: number; sec: number } | null = null;
+  for (const r of arr) {
+    const s = r?.Clock?.Seconds;
+    if (s != null && (!best || seqOf(r) > best.seq)) best = { seq: seqOf(r), sec: num(s) };
+  }
+  if (best) return Math.min(Math.floor(best.sec / 60) + 1, 130);
+  // No clock yet - estimate from kickoff timestamps.
+  let now = 0; for (const r of arr) { const t = tsOf(r); if (t > now) now = t; }
+  if (!now) return null;
+  let h1 = 0, h1Seq = Infinity, htSeq = -1;
+  for (const r of arr) {
+    const a = String(r?.Action || ''); const s = seqOf(r);
+    if ((a === 'kickoff' || a === 'kickoff_team') && s < h1Seq) { h1Seq = s; h1 = tsOf(r); }
+    if (a === 'halftime_finalised' && s > htSeq) htSeq = s;
+  }
+  if (phase === 'H2') {
+    let h2 = 0, h2Seq = Infinity;
+    for (const r of arr) if (String(r?.Action || '') === 'kickoff' && seqOf(r) > htSeq && seqOf(r) < h2Seq) { h2Seq = seqOf(r); h2 = tsOf(r); }
+    return h2 ? Math.max(46, Math.min(45 + Math.round((now - h2) / 60000), 120)) : 46;
+  }
+  return h1 ? Math.max(1, Math.min(1 + Math.round((now - h1) / 60000), 60)) : null;
+}
+function tsOf(u: any): number { return num(u?.Ts ?? u?.ts ?? u?.Timestamp ?? u?.timestamp); }
 
 // TxLINE soccer game-phase encoding (numeric id → code). Docs: scores/soccer-feed.
 function phaseFromActions(arr: any[]): string {

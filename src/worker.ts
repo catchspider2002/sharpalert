@@ -31,7 +31,7 @@ export default {
       }
       let m = path.match(/^\/api\/odds-history\/(\w+)$/);
       if (m && req.method === 'GET') {
-        const r = await env.DB.prepare('SELECT ts, phase, home, draw, away FROM odds_snapshots WHERE match_id=? ORDER BY ts ASC LIMIT 500').bind(m[1]).all();
+        const r = await env.DB.prepare('SELECT ts, phase, minute, home, draw, away FROM odds_snapshots WHERE match_id=? ORDER BY ts ASC LIMIT 500').bind(m[1]).all();
         return json({ snapshots: r.results });
       }
       if (path === '/api/accuracy' && req.method === 'GET') return json(await accuracy(env));
@@ -83,7 +83,7 @@ async function processMatch(env: Env, txenv: TxEnv, fx: { fixtureId: number; hom
   if (!prev) {
     await env.DB.prepare('INSERT INTO match_state (match_id,home_team,away_team,last_implied,last_decimal,streak,goals,reds,last_event_at,phase,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
       .bind(matchId, fx.home, fx.away, JSON.stringify(odds.implied), JSON.stringify(odds.decimal), '{}', ms.goals, ms.reds, lastEventAt, ms.phase, new Date().toISOString()).run();
-    await snapshot(env, matchId, now, ms.phase, odds.implied);
+    await snapshot(env, matchId, now, ms.phase, ms.minute, odds.implied);
     return;
   }
 
@@ -111,12 +111,12 @@ async function processMatch(env: Env, txenv: TxEnv, fx: { fixtureId: number; hom
 
   await env.DB.prepare('UPDATE match_state SET last_implied=?, last_decimal=?, streak=?, goals=?, reds=?, last_event_at=?, phase=?, updated_at=? WHERE match_id=?')
     .bind(JSON.stringify(odds.implied), JSON.stringify(odds.decimal), JSON.stringify(streak), ms.goals, ms.reds, lastEventAt, ms.phase, new Date().toISOString(), matchId).run();
-  await snapshot(env, matchId, now, ms.phase, odds.implied);
+  await snapshot(env, matchId, now, ms.phase, ms.minute, odds.implied);
 }
 
-async function snapshot(env: Env, matchId: string, ts: number, phase: string, implied: Record<Market, number>): Promise<void> {
-  await env.DB.prepare('INSERT INTO odds_snapshots (match_id,ts,phase,home,draw,away) VALUES (?,?,?,?,?,?)')
-    .bind(matchId, ts, phase, implied.home, implied.draw, implied.away).run();
+async function snapshot(env: Env, matchId: string, ts: number, phase: string, minute: number | null, implied: Record<Market, number>): Promise<void> {
+  await env.DB.prepare('INSERT INTO odds_snapshots (match_id,ts,phase,minute,home,draw,away) VALUES (?,?,?,?,?,?,?)')
+    .bind(matchId, ts, phase, minute, implied.home, implied.draw, implied.away).run();
 }
 
 async function scoreMatch(env: Env, matchId: string, outcome: string): Promise<void> {

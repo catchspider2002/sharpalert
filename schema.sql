@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS odds_snapshots (
   match_id   TEXT NOT NULL,
   ts         INTEGER NOT NULL,
   phase      TEXT,
+  minute     INTEGER,                     -- match minute at capture (null pre-kickoff / unknown)
   home       REAL, draw REAL, away REAL   -- implied probabilities
 );
 CREATE INDEX IF NOT EXISTS idx_snap_match ON odds_snapshots (match_id, ts);
