@@ -6,7 +6,7 @@ An autonomous agent that polls TxLINE odds every minute across live World Cup ma
 
 - **Live:** https://sharpalert.wc26hackathon.com
 - **GitHub:** https://github.com/catchspider2002/sharpalert
-- **Demo video:** _add link_
+- **Demo video:** https://youtu.be/4yVqWZLFMaA
 - **TxLINE endpoints used:** `POST /auth/guest/start`, `GET /api/fixtures/snapshot`, `GET /api/odds/snapshot/{fixtureId}`, `GET /api/scores/snapshot/{fixtureId}`
 
 ## How it works
