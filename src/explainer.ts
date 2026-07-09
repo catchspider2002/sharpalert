@@ -33,9 +33,12 @@ export async function explain(apiKey: string | undefined, input: ExplainInput): 
     const text = await chat(apiKey, {
       system: SYSTEM + '\nRefer to the moved market by the team name given in "marketName" - never say "home" or "away".',
       user: JSON.stringify({ match: { home: input.home, away: input.away, phase: input.phase }, movement: { ...input.movement, marketName: mkName }, classification: input.classification }),
-      maxTokens: 120,
+      // Generous budget: GLM's hidden reasoning tokens count against max_tokens - 120 was
+      // starving the visible output, so every card silently fell back to the template.
+      maxTokens: 1200,
     });
-    return text || fallback;
+    const clean = (text || '').replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+    return clean || fallback;
   } catch { return fallback; }
 }
 const signed = (n: number) => (n > 0 ? '+' + n : String(n));

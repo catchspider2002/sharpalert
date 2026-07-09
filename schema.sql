@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS kv (key TEXT PRIMARY KEY, value TEXT);
 CREATE TABLE IF NOT EXISTS match_state (
   match_id      TEXT PRIMARY KEY,
   home_team     TEXT, away_team TEXT,
+  kickoff       INTEGER,  -- fixture start time (ms), for display
   last_implied  TEXT,   -- {home,draw,away}
   last_decimal  TEXT,   -- {home,draw,away}
   streak        TEXT,   -- { market: { dir, count } }

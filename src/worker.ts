@@ -26,7 +26,7 @@ export default {
         return json({ signals: r.results });
       }
       if (path === '/api/matches' && req.method === 'GET') {
-        const r = await env.DB.prepare('SELECT match_id, home_team, away_team, phase, finished, last_implied, updated_at FROM match_state ORDER BY updated_at DESC').all();
+        const r = await env.DB.prepare('SELECT match_id, home_team, away_team, kickoff, phase, finished, last_implied, updated_at FROM match_state ORDER BY updated_at DESC').all();
         return json({ matches: r.results });
       }
       let m = path.match(/^\/api\/odds-history\/(\w+)$/);
@@ -52,12 +52,25 @@ async function runPoll(env: Env): Promise<number> {
   const now = Date.now();
   let fixtures = [] as Awaited<ReturnType<typeof listFixtures>>;
   try { fixtures = await listFixtures(txenv); } catch { return 0; }
+  await backfillKickoffs(env, fixtures);
   const live = fixtures.filter((f) => f.startTime >= now - 3.5 * 3600e3 && f.startTime <= now + 10 * 60e3).slice(0, 10);
   await Promise.allSettled(live.map((f) => processMatch(env, txenv, f, now)));
   return live.length;
 }
 
-async function processMatch(env: Env, txenv: TxEnv, fx: { fixtureId: number; home: string; away: string }, now: number): Promise<void> {
+// Rows tracked before the kickoff column existed have kickoff=NULL. Fill them from the current
+// fixtures snapshot so the UI can show match date/time without waiting for the match to be re-polled.
+async function backfillKickoffs(env: Env, fixtures: { fixtureId: number; startTime: number }[]): Promise<void> {
+  const nulls = await env.DB.prepare('SELECT match_id FROM match_state WHERE kickoff IS NULL').all<any>();
+  if (!nulls.results?.length) return;
+  const byId = new Map(fixtures.map((f) => [String(f.fixtureId), f.startTime]));
+  for (const row of nulls.results) {
+    const k = byId.get(String(row.match_id));
+    if (k != null) await env.DB.prepare('UPDATE match_state SET kickoff=? WHERE match_id=?').bind(k, row.match_id).run();
+  }
+}
+
+async function processMatch(env: Env, txenv: TxEnv, fx: { fixtureId: number; home: string; away: string; startTime: number }, now: number): Promise<void> {
   const matchId = String(fx.fixtureId);
   const ms = await getMatchState(txenv, matchId);
   const prev = await env.DB.prepare('SELECT * FROM match_state WHERE match_id=?').bind(matchId).first<any>();
@@ -67,9 +80,9 @@ async function processMatch(env: Env, txenv: TxEnv, fx: { fixtureId: number; hom
     if (prev && prev.finished) return;
     await scoreMatch(env, matchId, ms.winner || 'draw');
     await env.DB.prepare(
-      'INSERT INTO match_state (match_id,home_team,away_team,phase,finished,winner,updated_at) VALUES (?,?,?,?,1,?,?) ' +
-      'ON CONFLICT(match_id) DO UPDATE SET finished=1, winner=excluded.winner, phase=excluded.phase, updated_at=excluded.updated_at')
-      .bind(matchId, fx.home, fx.away, ms.phase, ms.winner, new Date().toISOString()).run();
+      'INSERT INTO match_state (match_id,home_team,away_team,kickoff,phase,finished,winner,updated_at) VALUES (?,?,?,?,?,1,?,?) ' +
+      'ON CONFLICT(match_id) DO UPDATE SET finished=1, winner=excluded.winner, phase=excluded.phase, kickoff=COALESCE(match_state.kickoff, excluded.kickoff), updated_at=excluded.updated_at')
+      .bind(matchId, fx.home, fx.away, fx.startTime, ms.phase, ms.winner, new Date().toISOString()).run();
     return;
   }
   if (!ms.started) return;
@@ -81,8 +94,8 @@ async function processMatch(env: Env, txenv: TxEnv, fx: { fixtureId: number; hom
 
   // First sighting → store baseline, no detection yet.
   if (!prev) {
-    await env.DB.prepare('INSERT INTO match_state (match_id,home_team,away_team,last_implied,last_decimal,streak,goals,reds,last_event_at,phase,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
-      .bind(matchId, fx.home, fx.away, JSON.stringify(odds.implied), JSON.stringify(odds.decimal), '{}', ms.goals, ms.reds, lastEventAt, ms.phase, new Date().toISOString()).run();
+    await env.DB.prepare('INSERT INTO match_state (match_id,home_team,away_team,kickoff,last_implied,last_decimal,streak,goals,reds,last_event_at,phase,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)')
+      .bind(matchId, fx.home, fx.away, fx.startTime, JSON.stringify(odds.implied), JSON.stringify(odds.decimal), '{}', ms.goals, ms.reds, lastEventAt, ms.phase, new Date().toISOString()).run();
     await snapshot(env, matchId, now, ms.phase, ms.minute, odds.implied);
     return;
   }

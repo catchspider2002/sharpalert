@@ -1,0 +1,96 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+  body{margin:0;font-family:-apple-system,system-ui,sans-serif;background:#0b1120;color:#f1f5f9}
+  .slide{display:none;width:100vw;height:100vh;box-sizing:border-box;padding:64px 90px;flex-direction:column;justify-content:center}
+  .slide.on{display:flex}
+  .brand{color:#fb7185;font-weight:800}
+  h1{font-size:54px;margin:0 0 18px} h2{font-size:40px;margin:0 0 26px}
+  p,li{font-size:26px;line-height:1.55;color:#cbd5e1} li{margin-bottom:14px}
+  .tag{font-size:20px;letter-spacing:2px;text-transform:uppercase;color:#64748b;margin-bottom:14px}
+  .code{background:#020617;border:1px solid #1e293b;border-radius:12px;padding:20px 26px;font:16px/1.55 ui-monospace,Menlo,monospace;color:#7dd3fc;overflow:hidden;max-height:52vh}
+  .flow{display:flex;align-items:center;gap:14px;margin-top:30px;flex-wrap:wrap}
+  .box{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:16px 20px;font-size:20px;font-weight:600}
+  .box small{display:block;font-weight:400;color:#94a3b8;font-size:15px;margin-top:4px}
+  .arrow{color:#fb7185;font-size:26px;font-weight:700}
+  .accent{color:#fb7185}
+</style></head><body>
+
+<div class="slide" id="s1" style="text-align:center;align-items:center">
+  <h1 style="font-size:72px">⚡ <span class="brand">SharpAlert</span></h1>
+  <p style="font-size:30px">In-play sharp movement detector for World Cup 2026<br>Trading Tools &amp; Agents · powered by the <b class="accent">TxLINE</b> live odds feed</p>
+</div>
+
+<div class="slide" id="s2">
+  <div class="tag">The problem</div>
+  <h2>In-play lines move for two very different reasons - and you can't tell them apart by watching</h2>
+  <ul>
+    <li><b>Reactive</b> moves reprice a known event - a goal, a red card. Old news by the time you see them</li>
+    <li><b>Sharp</b> moves happen with <b>no visible event</b> - informed money hitting the market before the rest catches up. That's the signal worth following</li>
+    <li>Separating them means watching every market of every live match, minute by minute, and cross-checking the event feed - across simultaneous World Cup games</li>
+  </ul>
+</div>
+
+<div class="slide" id="s3">
+  <div class="tag">The fix</div>
+  <h2><span class="brand">SharpAlert</span>: an agent that watches every line, every minute</h2>
+  <ul>
+    <li>A Worker cron polls <b class="accent">TxLINE</b> odds + scores for every live match, every minute</li>
+    <li>A ≥5pp implied-probability shift on any market becomes a signal - classified <b>sharp</b> (no event within 3 min) or <b>reactive</b>, with a confidence tier</li>
+    <li>After full time, every signal is <b>graded against the real result</b> - accuracy broken down by confidence, so you can see calibration, not luck</li>
+  </ul>
+  <p style="margin-top:26px">So far: <b class="accent">55 signals</b>, 30 correct (55%). Let's look. →</p>
+</div>
+
+<div class="slide" id="s4">
+  <div class="tag">Under the hood</div>
+  <h2>How <span class="accent">TxLINE</span> powers the backend</h2>
+  <div class="flow">
+    <div class="box">TxLINE API<small>odds + scores snapshots, every minute</small></div>
+    <div class="arrow">→</div>
+    <div class="box">Detector<small>≥5pp shift → signal + velocity</small></div>
+    <div class="arrow">→</div>
+    <div class="box">Classifier + LLM<small>sharp vs reactive · signal card</small></div>
+    <div class="arrow">→</div>
+    <div class="box">D1 + grading<small>scored on game_finalised</small></div>
+  </div>
+  <ul style="margin-top:34px">
+    <li><b>detect</b> - implied probabilities from <span class="accent">/api/odds/snapshot</span> are diffed poll-to-poll; the match minute comes from the feed's running clock</li>
+    <li><b>classify</b> - the scores feed says whether a goal/red landed within 3 minutes: reactive if yes, <b>sharp</b> if not</li>
+    <li><b>grade</b> - on <span class="accent">game_finalised</span>, each sharp signal is marked correct or incorrect against the result</li>
+  </ul>
+</div>
+
+<div class="slide" id="s5">
+  <div class="tag">Live TxLINE data · odds snapshot (full-time 1X2)</div>
+  <h2>France vs Morocco - the feed the detector diffs, straight from TxLINE</h2>
+  <pre class="code">{
+  "FixtureId": 18209181,
+  "Fixture": "France vs Morocco",
+  "StartTime": "2026-07-09T20:00:00.000Z",
+  "SuperOddsType": "1X2_PARTICIPANT_RESULT",
+  "Bookmaker": "TXLineStablePriceDemargined",
+  "PriceNames": [
+    "part1",
+    "draw",
+    "part2"
+  ],
+  "Prices": [
+    2294,
+    2399,
+    6796
+  ],
+  "Pct": [
+    "43.592",
+    "41.684",
+    "14.715"
+  ]
+}</pre>
+  <p style="margin-top:22px">The Worker normalises <b>Pct</b> into implied probabilities - two polls of this, 5 points apart, is a signal.</p>
+</div>
+
+<div class="slide" id="s6" style="text-align:center;align-items:center">
+  <h1><span class="brand">SharpAlert</span></h1>
+  <p style="font-size:28px">sharpalert.wc26hackathon.com<br><br>The market whispers before it shouts. <span class="accent">Hear it first.</span> ⚡</p>
+</div>
+
+<script>window.show=(id)=>{document.querySelectorAll('.slide').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on')}</script>
+</body></html>

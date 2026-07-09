@@ -3,13 +3,22 @@ const qs = (s) => document.querySelector(s);
 const api = (p, o) => fetch(p, o).then(async (r) => { const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status)); return d; });
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const MK = { home: 'Home win', draw: 'Draw', away: 'Away win' };
+// Kickoff (ms; accepts seconds too) → "Jul 6, 03:00 PM". Empty string if unknown.
+const fmtDateTime = (t) => {
+  if (t == null || t === '') return '';
+  const ms = Number(t) < 1e12 ? Number(t) * 1000 : Number(t);
+  const d = new Date(ms);
+  return isNaN(d.getTime()) ? '' : d.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+};
 let chart = null;
+const KICK = {}; // match_id → kickoff (ms), populated by loadMatches, reused by signal cards
 
 init();
 function init() {
   setupRun('Polling…', 'Run poll now');
   qs('#match').addEventListener('change', () => loadChart(qs('#match').value));
-  refresh(); loadMatches();
+  // Load matches first so the kickoff map (KICK) is ready when signal cards render.
+  loadMatches().then(refresh);
   setInterval(refresh, 15000);
   setInterval(loadMatches, 30000);
 }
@@ -56,8 +65,10 @@ async function loadSignals() {
       const delta = (s.implied_delta > 0 ? '+' : '') + s.implied_delta + 'pp';
       // Neutral-venue tournament: name the team the market is about, not "Home"/"Away".
       const mkName = s.market === 'home' ? s.home_team : s.market === 'away' ? s.away_team : 'Draw';
+      const dt = fmtDateTime(KICK[s.match_id]);
       return `<div class="signal"><div class="top">` +
         `<span class="match">${esc(s.home_team)} vs ${esc(s.away_team)}</span>` +
+        (dt ? `<span class="when muted">${esc(dt)}</span>` : '') +
         `<span class="badge b-${s.type}">${s.type}</span>` +
         `<span class="badge b-${s.confidence}">${s.confidence}</span>${outcome}</div>` +
         `<div class="move">${esc(mkName)} ${s.direction} - ${delta} (${s.decimal_before}→${s.decimal_after}) · ${esc(s.phase)}</div>` +
@@ -69,9 +80,13 @@ async function loadSignals() {
 async function loadMatches() {
   try {
     const { matches } = await api('/api/matches');
+    matches.forEach((m) => { if (m.kickoff != null) KICK[m.match_id] = m.kickoff; });
     const sel = qs('#match'); const cur = sel.value;
     sel.innerHTML = '<option value="">Pick a tracked match…</option>' +
-      matches.map((m) => `<option value="${m.match_id}">${esc(m.home_team)} vs ${esc(m.away_team)}${m.finished ? ' (FT)' : ''}</option>`).join('');
+      matches.map((m) => {
+        const dt = fmtDateTime(m.kickoff);
+        return `<option value="${m.match_id}">${esc(m.home_team)} vs ${esc(m.away_team)}${dt ? ' · ' + esc(dt) : ''}${m.finished ? ' (FT)' : ''}</option>`;
+      }).join('');
     if (cur) sel.value = cur;
   } catch {}
 }
@@ -82,8 +97,8 @@ async function loadChart(matchId) {
   const ctx = qs('#chart').getContext('2d');
   if (chart) chart.destroy();
   const ds = (label, key, color) => ({ label, data: snapshots.map((s) => (s[key] * 100)), borderColor: color, backgroundColor: color, tension: 0.3, pointRadius: 0, borderWidth: 2 });
-  // Legend with real team names, parsed from the selected option ("Home vs Away (FT)").
-  const optText = (qs('#match').selectedOptions[0]?.text || '').replace(/ \(FT\)$/, '');
+  // Legend with real team names, parsed from the selected option ("Home vs Away · <date> (FT)").
+  const optText = (qs('#match').selectedOptions[0]?.text || '').replace(/ \(FT\)$/, '').split(' · ')[0];
   const [homeName, awayName] = optText.includes(' vs ') ? optText.split(' vs ') : ['Home', 'Away'];
   const fmtTs = (t) => { const ms = t < 1e12 ? t * 1000 : t; const d = new Date(ms); return isNaN(d.getTime()) ? '' : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
   // Label by MATCH minute (45+X / 90+X in stoppage, HT at the break); wall-clock only as a
